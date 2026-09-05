@@ -1,0 +1,46 @@
+spring:
+  application:
+    name: rsfinancial
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:rsfinancial}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:mxaka}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    # Flyway owns the schema (see db/migration) - Hibernate only validates
+    # that entities match it, never auto-generates or alters tables. This
+    # matters more than usual here: several tables (e.g. medical
+    # underwriting) carry deliberate access-control grants applied in SQL
+    # migrations - `ddl-auto: update` could silently recreate a table
+    # without those grants.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+#    ignore-migration-on-by-default: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  jwt:
+    # No default here on purpose - the app should fail fast on startup if
+    # this isn't set, rather than silently signing tokens with a
+    # committed/shared secret. Generate a real one with, e.g.:
+    #   openssl rand -base64 32
+    secret: ${JWT_SECRET:A2OyaTAOFE+BRbs6VhvhDfJjXciyqt25fRQUOnFsblo=}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+
+logging:
+  level:
+    com.afrofuturists.rsfinancial: DEBUG
